@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexCart Enterprise - E-Commerce System</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Custom Style Overlay -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="h-full min-h-screen flex flex-col antialiased">
+
+    <!-- Toast Notifications Container -->
+    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3 max-w-sm pointer-events-auto"></div>
+
+    <!-- Navigation Bar -->
+    <nav id="navbar" class="hidden glass-panel border-b border-white/5 sticky top-0 z-40 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <!-- Brand Logo -->
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="navigateTo('customer-catalog')">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-violet-600 to-indigo-600 flex items-center justify-center glow-primary">
+                    <i data-lucide="shopping-bag" class="w-5 h-5 text-white"></i>
+                </div>
+                <span class="text-xl font-bold tracking-tight bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">NexCart</span>
+            </div>
+
+            <!-- Nav Links -->
+            <div class="flex items-center space-x-6">
+                <button id="nav-link-admin" class="hidden text-sm font-semibold hover:text-purple-400 transition flex items-center space-x-1">
+                    <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+                    <span>Admin Panel</span>
+                </button>
+                <button id="nav-link-catalog" class="text-sm font-semibold hover:text-purple-400 transition flex items-center space-x-1">
+                    <i data-lucide="grid" class="w-4 h-4"></i>
+                    <span>Catalog</span>
+                </button>
+                <button id="nav-link-orders" class="text-sm font-semibold hover:text-purple-400 transition flex items-center space-x-1">
+                    <i data-lucide="package" class="w-4 h-4"></i>
+                    <span>My Orders</span>
+                </button>
+            </div>
+
+            <!-- User Context Controls -->
+            <div class="flex items-center space-x-4">
+                <!-- Shopping Cart Toggle -->
+                <button onclick="toggleCart()" class="relative p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 transition flex items-center justify-center">
+                    <i data-lucide="shopping-cart" class="w-5 h-5 text-gray-300"></i>
+                    <span id="cart-badge" class="absolute -top-1.5 -right-1.5 bg-violet-600 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border border-[#0b0f19] hidden">0</span>
+                </button>
+
+                <!-- Profile Info -->
+                <div class="flex items-center space-x-3 border-l border-white/10 pl-4">
+                    <div class="text-right">
+                        <p id="nav-username" class="text-sm font-bold text-gray-200">Username</p>
+                        <p id="nav-role" class="text-[10px] font-mono uppercase tracking-wider text-purple-400 font-bold">Role</p>
+                    </div>
+                    <button id="nav-logout" class="p-2 rounded-xl text-red-400 hover:bg-red-950/40 border border-transparent hover:border-red-500/20 transition flex items-center justify-center" title="Sign Out">
+                        <i data-lucide="log-out" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Authentication Area -->
+    <div id="auth-container" class="flex-1 flex items-center justify-center p-6">
+        <!-- Login Box -->
+        <div id="login-box" class="glass-panel w-full max-w-md p-8 rounded-3xl animate-fade-in-up">
+            <div class="text-center mb-8">
+                <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-violet-600 to-indigo-600 flex items-center justify-center mx-auto mb-4 glow-primary">
+                    <i data-lucide="shield-check" class="w-7 h-7 text-white"></i>
+                </div>
+                <h2 class="text-2xl font-extrabold tracking-tight">Access NexCart E-Store</h2>
+                <p class="text-gray-400 text-sm mt-1">Authenticate credentials with OIDC Keycloak</p>
+            </div>
+            
+            <form id="login-form" class="space-y-5">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Username</label>
+                    <input id="login-username" type="text" required placeholder="e.g. adminuser" 
+                        class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-purple-500 text-white transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Password</label>
+                    <input id="login-password" type="password" required placeholder="••••••••" 
+                        class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-purple-500 text-white transition">
+                </div>
+                <button type="submit" class="w-full py-3.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold transition duration-200 glow-primary shadow-lg shadow-purple-600/20">
+                    Sign In
+                </button>
+            </form>
+            <div class="text-center mt-6">
+                <p class="text-sm text-gray-400">New to the platform? <button id="show-register" class="text-purple-400 hover:underline font-semibold">Create account</button></p>
+            </div>
+        </div>
+
+        <!-- Register Box -->
+        <div id="register-box" class="glass-panel w-full max-w-md p-8 rounded-3xl animate-fade-in-up hidden">
+            <div class="text-center mb-8">
+                <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-600 flex items-center justify-center mx-auto mb-4 glow-secondary">
+                    <i data-lucide="user-plus" class="w-7 h-7 text-white"></i>
+                </div>
+                <h2 class="text-2xl font-extrabold tracking-tight">Create E-Store Account</h2>
+                <p class="text-gray-400 text-sm mt-1">Registers inside Keycloak & syncs local profile</p>
+            </div>
+            
+            <form id="register-form" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">Username</label>
+                    <input id="reg-username" type="text" required placeholder="e.g. johndoe" 
+                        class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-500 text-white transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">Email Address</label>
+                    <input id="reg-email" type="email" required placeholder="john@example.com" 
+                        class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-500 text-white transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">Password</label>
+                    <input id="reg-password" type="password" required placeholder="••••••••" 
+                        class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-500 text-white transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">Realm Role Mapping</label>
+                    <select id="reg-role" class="w-full bg-[#0b0f19] border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-500 text-white transition">
+                        <option value="CUSTOMER">CUSTOMER (Standard Buyer)</option>
+                        <option value="ADMIN">ADMIN (System Manager)</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition duration-200 glow-secondary shadow-lg shadow-emerald-600/20">
+                    Register Profile
+                </button>
+            </form>
+            <div class="text-center mt-6">
+                <p class="text-sm text-gray-400">Already registered? <button id="show-login" class="text-emerald-400 hover:underline font-semibold">Sign In</button></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Dashboard Space -->
+    <main id="app-container" class="flex-1 max-w-7xl w-full mx-auto px-6 py-8 hidden">
+        
+        <!-- ADMIN DASHBOARD PANEL -->
+        <section id="view-admin-dashboard" class="view-section space-y-8 hidden">
+            <!-- Telemetry Header -->
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                    <h1 class="text-3xl font-extrabold tracking-tight">System Management Hub</h1>
+                    <p class="text-gray-400 text-sm">Real-time inventory levels, transactional data charts, and catalogs sync.</p>
+                </div>
+                <button onclick="openCreateProductModal()" class="px-5 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-semibold transition duration-200 flex items-center space-x-2 glow-primary shadow-lg shadow-purple-600/20">
+                    <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                    <span>Register New Product</span>
+                </button>
+            </div>
+
+            <!-- Telemetry Metrics Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="glass-panel p-6 rounded-2xl">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-sm font-bold text-gray-400 uppercase tracking-wider">Catalog Size</span>
+                        <div class="w-10 h-10 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center justify-center">
+                            <i data-lucide="database" class="w-5 h-5"></i>
+                        </div>
+                    </div>
+                    <h3 id="stat-products" class="text-4xl font-extrabold tracking-tight">0</h3>
+                    <p class="text-xs text-gray-500 mt-2">Active catalog entries</p>
+                </div>
+                
+                <div class="glass-panel p-6 rounded-2xl">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-sm font-bold text-gray-400 uppercase tracking-wider">Total Sales</span>
+                        <div class="w-10 h-10 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center">
+                            <i data-lucide="dollar-sign" class="w-5 h-5"></i>
+                        </div>
+                    </div>
+                    <h3 id="stat-revenue" class="text-4xl font-extrabold tracking-tight text-gradient-secondary">$0.00</h3>
+                    <p class="text-xs text-gray-500 mt-2">Excludes cancelled transactions</p>
+                </div>
+                
+                <div class="glass-panel p-6 rounded-2xl">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-sm font-bold text-gray-400 uppercase tracking-wider">Checkout Orders</span>
+                        <div class="w-10 h-10 rounded-lg bg-purple-500/10 text-purple-400 border border-purple-500/20 flex items-center justify-center">
+                            <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+                        </div>
+                    </div>
+                    <h3 id="stat-orders" class="text-4xl font-extrabold tracking-tight">0</h3>
+                    <p class="text-xs text-gray-500 mt-2">Aggregate transaction count</p>
+                </div>
+                
+                <div id="stat-low-stock-card" class="glass-panel p-6 rounded-2xl border transition duration-300">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-sm font-bold text-gray-400 uppercase tracking-wider">Low Stock Alerts</span>
+                        <div class="w-10 h-10 rounded-lg bg-red-500/10 text-red-400 border border-red-500/20 flex items-center justify-center">
+                            <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+                        </div>
+                    </div>
+                    <h3 id="stat-low-stock" class="text-4xl font-extrabold tracking-tight text-red-500">0</h3>
+                    <p class="text-xs text-gray-500 mt-2">SKUs with 10 or fewer units</p>
+                </div>
+            </div>
+
+            <!-- Visualization Charts Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Bar Chart: Stock Levels -->
+                <div class="glass-panel p-6 rounded-2xl flex flex-col justify-between min-h-[350px]">
+                    <div class="mb-4">
+                        <h3 class="text-lg font-bold">Stock Availability Chart</h3>
+                        <p class="text-xs text-gray-400">Total physical inventory registered per SKU</p>
+                    </div>
+                    <div class="flex-1 relative min-h-[220px]">
+                        <canvas id="chart-stock-levels"></canvas>
+                    </div>
+                </div>
+
+                <!-- Doughnut Chart: Sales breakdown -->
+                <div class="glass-panel p-6 rounded-2xl flex flex-col justify-between min-h-[350px]">
+                    <div class="mb-4">
+                        <h3 class="text-lg font-bold">Product Sales Breakdown</h3>
+                        <p class="text-xs text-gray-400">Distribution of items sold in system</p>
+                    </div>
+                    <div class="flex-1 relative min-h-[220px]">
+                        <canvas id="chart-sales-breakdown"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table Logs Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Product SKU & inventory Table -->
+                <div class="glass-panel p-6 rounded-2xl lg:col-span-2 overflow-x-auto">
+                    <div class="mb-4">
+                        <h3 class="text-lg font-bold">Inventory & Product Catalog</h3>
+                        <p class="text-xs text-gray-400">Manage catalog and verify database registry values</p>
+                    </div>
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-white/10 text-xs font-bold uppercase tracking-wider text-gray-400">
+                                <th class="py-3 px-6">Product</th>
+                                <th class="py-3 px-6">SKU</th>
+                                <th class="py-3 px-6">Price</th>
+                                <th class="py-3 px-6">Stock</th>
+                                <th class="py-3 px-6">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-products-table-body">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Global Transactions logs -->
+                <div class="glass-panel p-6 rounded-2xl">
+                    <div class="mb-4">
+                        <h3 class="text-lg font-bold">Transaction Orders Logs</h3>
+                        <p class="text-xs text-gray-400">Live order state audits in MySQL</p>
+                    </div>
+                    <div id="admin-orders-list" class="space-y-4 max-h-[350px] overflow-y-auto pr-1">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CUSTOMER CATALOG PANEL -->
+        <section id="view-customer-catalog" class="view-section space-y-8 hidden">
+            <!-- Header search bar -->
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b border-white/5">
+                <div>
+                    <h1 class="text-3xl font-extrabold tracking-tight">NexCart Product Catalog</h1>
+                    <p class="text-gray-400 text-sm">Select items, specify quantities in your cart, and place orders securely.</p>
+                </div>
+                
+                <div class="flex items-center space-x-3 w-full md:w-auto max-w-md">
+                    <input id="catalog-search-input" type="text" placeholder="Search product name or keyword..." 
+                        class="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm w-full focus:outline-none focus:border-purple-500 text-white transition">
+                    <button id="catalog-search-btn" class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-semibold transition flex items-center space-x-1.5 shrink-0 glow-primary">
+                        <i data-lucide="search" class="w-4 h-4"></i>
+                        <span>Search</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Catalog Cards Grid -->
+            <div id="catalog-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Populated dynamically -->
+            </div>
+        </section>
+
+        <!-- CUSTOMER ORDERS PANEL -->
+        <section id="view-customer-orders" class="view-section space-y-8 hidden">
+            <div>
+                <h1 class="text-3xl font-extrabold tracking-tight font-sans">My Checkout History</h1>
+                <p class="text-gray-400 text-sm">Audit your transactions status and cancel active checkout placements.</p>
+            </div>
+            
+            <div id="customer-orders-list" class="space-y-5">
+                <!-- Populated dynamically -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Cart Sidebar Drawer -->
+    <div id="cart-drawer" class="fixed inset-y-0 right-0 z-50 w-full max-w-md glass-panel border-l border-white/5 transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col justify-between">
+        <!-- Drawer Header -->
+        <div class="p-6 border-b border-white/5 flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <i data-lucide="shopping-cart" class="w-5 h-5 text-purple-400"></i>
+                <h3 class="text-lg font-bold">Shopping Cart</h3>
+            </div>
+            <button onclick="toggleCart()" class="p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 transition flex items-center justify-center">
+                <i data-lucide="x" class="w-5 h-5 text-gray-300"></i>
+            </button>
+        </div>
+
+        <!-- Drawer Content Items -->
+        <div id="cart-items-list" class="flex-1 overflow-y-auto p-6 space-y-4">
+            <!-- Populated dynamically -->
+        </div>
+
+        <!-- Drawer Checkout footer -->
+        <div class="p-6 border-t border-white/5 bg-[#0b0f19]">
+            <div class="flex items-center justify-between mb-4">
+                <span class="text-gray-400 font-medium">Checkout Total:</span>
+                <span id="cart-total" class="text-2xl font-bold text-gradient-secondary font-mono">$0.00</span>
+            </div>
+            <button id="btn-checkout" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-bold transition duration-200 glow-primary shadow-lg shadow-purple-600/25 flex items-center justify-center space-x-2">
+                <i data-lucide="credit-card" class="w-5 h-5"></i>
+                <span>Complete Purchase Checkout</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Dialog Modal: Create Product -->
+    <div id="create-product-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-6">
+        <div class="glass-panel w-full max-w-md p-8 rounded-3xl relative animate-fade-in-up border border-purple-500/20">
+            <button onclick="closeCreateProductModal()" class="absolute top-4 right-4 p-2 bg-white/5 hover:bg-white/10 border border-white/5 rounded-lg text-gray-300 transition">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+            <h3 class="text-xl font-bold mb-4 flex items-center space-x-2">
+                <i data-lucide="plus-circle" class="text-purple-400 w-5 h-5"></i>
+                <span>Catalog New Product</span>
+            </h3>
+            <form id="create-product-form" onsubmit="handleCreateProductSubmit(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">Product Name</label>
+                    <input id="prod-name" type="text" required placeholder="e.g. MacBook Pro" 
+                        class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-purple-500 text-white transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">Product Description</label>
+                    <textarea id="prod-desc" required rows="3" placeholder="Explain the key details..." 
+                        class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-purple-500 text-white transition resize-none"></textarea>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">Unit Price ($)</label>
+                        <input id="prod-price" type="number" step="0.01" min="0.01" required placeholder="99.99" 
+                            class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-purple-500 text-white transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">Unique SKU Code</label>
+                        <input id="prod-sku" type="text" required placeholder="e.g. MACBOOK16" 
+                            class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-purple-500 text-white transition">
+                    </div>
+                </div>
+                <button type="submit" class="w-full mt-4 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl transition duration-200 glow-primary shadow-lg shadow-purple-600/20">
+                    Publish Product Entry
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Dialog Modal: Restock Product -->
+    <div id="restock-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-6">
+        <div class="glass-panel w-full max-w-sm p-8 rounded-3xl relative animate-fade-in-up border border-purple-500/20">
+            <button onclick="closeRestockModal()" class="absolute top-4 right-4 p-2 bg-white/5 hover:bg-white/10 border border-white/5 rounded-lg text-gray-300 transition">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+            <h3 class="text-xl font-bold mb-4 flex items-center space-x-2">
+                <i data-lucide="package-plus" class="text-purple-400 w-5 h-5"></i>
+                <span>Restock Product Stock</span>
+            </h3>
+            <form id="restock-form" onsubmit="handleRestockSubmit(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">Product SKU Code</label>
+                    <input id="restock-sku" type="text" readonly 
+                        class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-gray-400 focus:outline-none border-dashed transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">Update Stock Target Quantity</label>
+                    <input id="restock-qty" type="number" min="0" required placeholder="50" 
+                        class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-purple-500 text-white transition">
+                </div>
+                <button type="submit" class="w-full mt-4 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl transition duration-200 glow-primary">
+                    Update Inventory Stock
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

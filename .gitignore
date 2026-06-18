@@ -1,0 +1,30 @@
+# Maven build directories
+**/target/
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+
+# Eclipse metadata & configuration
+.metadata/
+.project
+.classpath
+.settings/
+bin/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+
+# VS Code
+.vscode/
+
+# OS metadata
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local temp logs & DB directories
+*.log
+docker/db_data/
