@@ -25,7 +25,7 @@ public class KeycloakRoleConverter implements Converter<Jwt, Collection<GrantedA
             return List.of();
         }
 
-        Collection<String> roles = (Collection<String>) realmAccess.get("roles");
+        Collection<String>roles = (Collection<String>) realmAccess.get("roles");
         if (roles == null) {
             return List.of();
         }
